@@ -35,36 +35,40 @@ git clone https://github.com/LPerlaza/Assembly2Gene.git
 																																	
 run like:
 
-`./fromAssembly2gene.pl -g gene/*fasta -a genome/* -o test`
-`./fromAssembly2gene_Klebsiella.pl -g gene/*fasta -a genome/* -o test`										
+`./fromAssembly2gene.pl -g gene/*fasta -a genome/* -o test
+`
+`./fromAssembly2gene_Klebsiella.pl -g gene/*fasta -a genome/* -o test
+`
 
 OPTIONS:																																	
-`--assemblies  -a Put all your files (assemblies) in a folder and write here the path with * at the end.`					
-`--genes 	  -g Put all your files (genes) in a folder and write here the path with * at the end. extension ".fasta" required`	
-`--out 		  -o prefix for output folders`																					
+`--assemblies  -a Put all your files (assemblies) in a folder and write here the path with * at the end.
+`					
+`-genes 	  -g Put all your files (genes) in a folder and write here the path with * at the end. extension ".fasta" required
+`
+`--out 		  -o prefix for output folders`
 
 **OUTPUTS**
 
 folder *test_output*:
 	This folder contains all the intermedia files used for the program. These files will help you to check in detail where your alignment come from. In case you are puzzle by your final table. Each folder contains:
 
-		*GenomeName.chr.genes.faa*: all predicted genes in AA
-		*GenomeName.chr.genes.fasta*: all predicted genes in nt
-		*GenomeName.chr.genes.gff*: all predicted genes in gff format with the fasta file at the end
-		*GenomeName.chromosome.GeneName.Blast.txt*: blast results of the gene against the genome
-		*GenomeName.chromosome.GeneName.fasta.plusRef.fasta*: fasta of gene reference and gene in the genome
+	*GenomeName.chr.genes.faa*: all predicted genes in AA
+	*GenomeName.chr.genes.fasta*: all predicted genes in nt
+	*GenomeName.chr.genes.gff*: all predicted genes in gff format with the fasta file at the end
+	*GenomeName.chromosome.GeneName.Blast.txt*: blast results of the gene against the genome
+	*GenomeName.chromosome.GeneName.fasta.plusRef.fasta*: fasta of gene reference and gene in the genome
 
 folder *test_results*
 	This folder contains all final results files and a folder with the predicted peptides that match with the genes of interest
-		*GeneName.fasta.nt_alignment.fasta*: The alignment of each gene of interest for all the genomes analysed
-		*test.alignments.description.txt*: table with the descriptive information of the alignments, stop codons, gaps, insertions, SNPs, N.copies (numbers of copies)
-		*Peptides* (folder): predicted peptides that match with the genes of interest
+	*GeneName.fasta.nt_alignment.fasta*: The alignment of each gene of interest for all the genomes analysed
+	*test.alignments.description.txt*: table with the descriptive information of the alignments, stop codons, gaps, insertions, SNPs, N.copies (numbers of copies)
+	*Peptides* (folder): predicted peptides that match with the genes of interest
 
 Additional files when running fromAssembly2gene_Klebsiella.pl
 
 folder test_output:
 	Each assembly has two folders one for the chromosome and one for the plasmid. 
-		*GenomeName.chromosome_contigslist.txt*:list of contigs in the assembly that are chromosomal
-		*GenomeName.chromosome.fasta*: fasta file of chromosomal contigs
-		*GenomeName.fsa_nt.chromosomesummary.txt*: summary results from chromosome prediction from mlplasmid
+	*GenomeName.chromosome_contigslist.txt*:list of contigs in the assembly that are chromosomal
+	*GenomeName.chromosome.fasta*: fasta file of chromosomal contigs
+	*GenomeName.fsa_nt.chromosomesummary.txt*: summary results from chromosome prediction from mlplasmid
 	
