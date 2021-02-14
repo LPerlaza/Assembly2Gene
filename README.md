@@ -1,4 +1,4 @@
-*From Assemblies to genes*																											
+**From Assemblies to genes**
 
 
 Detect genes in an assembly, and get their detailed alignments and description using fromAssembly2gene. fromAssembly2gene is a perl program that used several available programs and R packages to identify genes of your interests in an assembled genome and outputs a descriptive table, the alignment of your gene against the gene in the assembly and the predicted peptide.
@@ -14,7 +14,7 @@ The alternative version for Klebsiella:
 fromAssembly2gene_Klebsiella: This program works similarly with the exception that before the prediction of genes uses "mlplasmids" to identify plasmids (https://gitlab.com/sirarredondo/mlplasmids)
 fromAssembly2gene_Klebsiella separates chromosome and plasmids from assembled genomes and automatically find genes of interest. It generates descriptive tables of presence, absence and truncated genes, curated alignments and peptides predictions.		
 
- *Requires*
+ **Requires**
  
 The required inputs are assemblies and genes in fasta formats.
 The genomes must be located in a folder together with not additional files. 
@@ -27,17 +27,20 @@ Dependencies: Blast, prodigal and samtools. R packages: "mlplasmids", "msa", "re
 
 The program has been parallelised for efficiency.
  
+**Install**
+
+git clone  
 	 							
-*Run*
+**Run**
 																																	
 run like: 
-	./fromAssembly2gene.pl -g gene/*fasta -a genome/* -o test	
-	./fromAssembly2gene_Klebsiella.pl -g gene/*fasta -a genome/* -o test													
+`<addr>`	./fromAssembly2gene.pl -g gene/*fasta -a genome/* -o test	
+`<addr>`	./fromAssembly2gene_Klebsiella.pl -g gene/*fasta -a genome/* -o test													
 
-OPTIONS:																																	
-	--assemblies  -a Put all your files (assemblies) in a folder and write here the path with * at the end.							
-	--genes 	  -g Put all your files (genes) in a folder and write here the path with * at the end. extension ".fasta" required		
-	--out 		  -o prefix for output folders																						
+`<addr>`OPTIONS:																																	
+`<addr>`	--assemblies  -a Put all your files (assemblies) in a folder and write here the path with * at the end.							
+`<addr>`	--genes 	  -g Put all your files (genes) in a folder and write here the path with * at the end. extension ".fasta" required		
+`<addr>`	--out 		  -o prefix for output folders																						
 
 OUTPUTS
 
@@ -52,7 +55,7 @@ GenomeName.chromosome.GeneName.fasta.plusRef.fasta: fasta of gene reference and 
 
 folder test_results
 This folder contains all final results files and a folder with the predicted peptides that match with the genes of interest
-				GeneName.fasta.nt_alignment.fasta: The alignment of each gene of interest for all the genomes analysed
+GeneName.fasta.nt_alignment.fasta: The alignment of each gene of interest for all the genomes analysed
 				out.alignments.description.txt: table with the descriptive information of the alignments, stop codons, gaps, insertions, location (chr,plasmid), SNPs, N.copies (numbers of copies)
 				Peptides (folder): predicted peptides that match with the genes of interest
 
