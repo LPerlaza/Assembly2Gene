@@ -29,7 +29,7 @@ The program has been parallelised for efficiency.
  
 **Install**
 
-git clone  
+git clone https://github.com/LPerlaza/Assembly2Gene.git
 	 							
 **Run**
 																																	
