@@ -1,7 +1,7 @@
 # From Assemblies to genes
 
 
-Detect genes in an assembly, and get their detailed alignments and description using fromAssembly2gene. fromAssembly2gene is a perl program that used several available programs and R packages to identify genes of your interests in an assembled genome and outputs a descriptive table, the alignment of your gene against the gene in the assembly and the predicted peptide.
+Detect genes in an assembly, and get their alignments and description using fromAssembly2gene. fromAssembly2gene is a perl script run in command line that uses several available programs and R packages to identify genes of your interests in an assembled genome and outputs a descriptive table, the alignment of your gene against the gene in the assembly and the predicted peptide.
 It runs several steps:
 
 1. Predicts genes using prodigal https://github.com/hyattpd/Prodigal
@@ -12,7 +12,7 @@ It runs several steps:
 The alternative version for Klebsiella:
 
 fromAssembly2gene_Klebsiella: This program works similarly with the exception that before the prediction of genes uses "mlplasmids" to identify plasmids (https://gitlab.com/sirarredondo/mlplasmids)
-fromAssembly2gene_Klebsiella separates chromosome and plasmids from assembled genomes and automatically find genes of interest. It generates descriptive tables of presence, absence and truncated genes, curated alignments and peptides predictions.		
+fromAssembly2gene_Klebsiella separates chromosome and plasmids from assembled genomes and find the genes of your interest. It generates descriptive tables of presence, absence and truncated genes, curated alignments and peptides predictions.		
 
  **Requires**
  
@@ -34,18 +34,21 @@ git clone https://github.com/LPerlaza/Assembly2Gene.git
 **Run**
 																																	
 run like:
+```
+run like: ./fromAssembly2gene.pl -g gene/*fasta -a genome/* -o GenesInterest -c 10													
 
-`./fromAssembly2gene.pl -g gene/*fasta -a genome/* -o test
-`
-`./fromAssembly2gene_Klebsiella.pl -g gene/*fasta -a genome/* -o test
-`
+OPTIONS																																	
+	--assemblies  -a Put all your files (assemblies) in a folder and write here the path with * at the end.							
+	--genes 	  -g Put all your files (genes in nucleotide sequences) in a folder and write here the path with *fasta at the end. extension ".fasta".	
+	--out 		  -o prefix for output folders																						
+	--cores		  -c number of cores to use (4 default)
 
-OPTIONS:																																	
-`--assemblies  -a Put all your files (assemblies) in a folder and write here the path with * at the end.
-`					
-`-genes 	  -g Put all your files (genes) in a folder and write here the path with * at the end. extension ".fasta" required
-`
-`--out 		  -o prefix for output folders`
+
+Note 1: When you write * at the end of the path the program will take every file in the folder.
+Note 2: The blast indexes are going to be created inside the genes folder. Have this in mind when runing several times, use *fasta to avoid using the index files as inputs.	
+Note 3: Make sure your input genes have a starting and stop codon, and are not in reverse. Unexpected mistakes on the identification of the gene can happen when these are not met. We could account for this but the classification of possibly truncated matches is based on the movement of the stop codon in comparison with the reference.
+Note 4: If you failed to note 3, the program will add a ATG at the start of your sequence and a TAG at the end. This 
+```
 
 **OUTPUTS**
 

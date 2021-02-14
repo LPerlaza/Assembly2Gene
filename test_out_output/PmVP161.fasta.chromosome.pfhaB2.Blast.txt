@@ -1,0 +1,4 @@
+PmVP161:PmVP161.fasta_chr_1123###1272188###1284478###-1###ID=1_1123;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.403	pfhaB2	99.486	12291	11760	7007	1	7004	1	7004	30	0.0	12735
+PmVP161:PmVP161.fasta_chr_1123###1272188###1284478###-1###ID=1_1123;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.403	pfhaB2	85.360	12291	11760	2138	10172	12291	9635	11760	283	0.0	2187
+PmVP161:PmVP161.fasta_chr_1123###1272188###1284478###-1###ID=1_1123;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.403	pfhaB2	86.811	12291	11760	1251	8826	10064	8514	9758	147	0.0	1380
+PmVP161:PmVP161.fasta_chr_1127###1287235###1295076###-1###ID=1_1127;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.409	pfhaB2	96.653	7842	11760	717	7126	7842	11044	11760	24	0.0	1192

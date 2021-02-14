@@ -1,0 +1,2 @@
+PmVP161:PmVP161.fasta_chr_1123###1272188###1284478###-1###ID=1_1123;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.403	pfhaB1	89.833	12291	7848	718	11575	12291	7132	7848	71	0.0	920
+PmVP161:PmVP161.fasta_chr_1127###1287235###1295076###-1###ID=1_1127;partial=00;start_type=ATG;rbs_motif=AGGA;rbs_spacer=5-10bp;gc_cont=0.409	pfhaB1	98.535	7842	7848	7848	1	7842	1	7848	109	0.0	13850
