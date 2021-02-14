@@ -133,6 +133,8 @@ OPTIONS
 	--Kleb        -k When this option is set the program predicts plasmids in Klebsiella pneumonia. 
 	--Esch        -e When this option is set the program predicts plasmids in Escherichia coli.
     --Ent         -n When this option is set the program predicts plasmids in  Enterococcus faecium.
+    --help        -h print this help
+    --version     -v version
 
 NOTE 1: When you write * at the end of the path the program will take every file in the folder. 
 NOTE 2: The genes must have the extension ".fasta" as it is used as a tag for handling file in the program. 
