@@ -1,4 +1,4 @@
-**From Assemblies to genes**
+#**From Assemblies to genes**
 
 
 Detect genes in an assembly, and get their detailed alignments and description using fromAssembly2gene. fromAssembly2gene is a perl program that used several available programs and R packages to identify genes of your interests in an assembled genome and outputs a descriptive table, the alignment of your gene against the gene in the assembly and the predicted peptide.
@@ -34,36 +34,36 @@ git clone
 **Run**
 																																	
 run like: 
-`<addr>`	./fromAssembly2gene.pl -g gene/*fasta -a genome/* -o test	
-`<addr>`	./fromAssembly2gene_Klebsiella.pl -g gene/*fasta -a genome/* -o test													
+`<	./fromAssembly2gene.pl -g gene/*fasta -a genome/* -o test>`
+`<	./fromAssembly2gene_Klebsiella.pl -g gene/*fasta -a genome/* -o test	>`										
 
-`<addr>`OPTIONS:																																	
-`<addr>`	--assemblies  -a Put all your files (assemblies) in a folder and write here the path with * at the end.							
-`<addr>`	--genes 	  -g Put all your files (genes) in a folder and write here the path with * at the end. extension ".fasta" required		
-`<addr>`	--out 		  -o prefix for output folders																						
+OPTIONS:																																	
+`<	--assemblies  -a Put all your files (assemblies) in a folder and write here the path with * at the end.		>`					
+`<	--genes 	  -g Put all your files (genes) in a folder and write here the path with * at the end. extension ".fasta" required	>`	
+`<	--out 		  -o prefix for output folders	>`																					
 
-OUTPUTS
+**OUTPUTS**
 
-folder test_output:
+folder *test_output*:
 This folder contains all the intermedia files used for the program. These files will help you to check in detail where your alignment come from. In case you are puzzle by your final table. Each folder contains:
 
-GenomeName.chr.genes.faa:all predicted genes in AA
-GenomeName.chr.genes.fasta: all predicted genes in nt
-GenomeName.chr.genes.gff: all predicted genes in gff format with the fasta file at the end
-GenomeName.chromosome.GeneName.Blast.txt: blast results of the gene against the genome
-GenomeName.chromosome.GeneName.fasta.plusRef.fasta: fasta of gene reference and gene in the genome
+*GenomeName.chr.genes.faa*: all predicted genes in AA
+*GenomeName.chr.genes.fasta*: all predicted genes in nt
+*GenomeName.chr.genes.gff*: all predicted genes in gff format with the fasta file at the end
+*GenomeName.chromosome.GeneName.Blast.txt*: blast results of the gene against the genome
+*GenomeName.chromosome.GeneName.fasta.plusRef.fasta*: fasta of gene reference and gene in the genome
 
-folder test_results
+folder *test_results*
 This folder contains all final results files and a folder with the predicted peptides that match with the genes of interest
-GeneName.fasta.nt_alignment.fasta: The alignment of each gene of interest for all the genomes analysed
-				out.alignments.description.txt: table with the descriptive information of the alignments, stop codons, gaps, insertions, location (chr,plasmid), SNPs, N.copies (numbers of copies)
-				Peptides (folder): predicted peptides that match with the genes of interest
+*GeneName.fasta.nt_alignment.fasta*: The alignment of each gene of interest for all the genomes analysed
+*test.alignments.description.txt*: table with the descriptive information of the alignments, stop codons, gaps, insertions, SNPs, N.copies (numbers of copies)
+*Peptides* (folder): predicted peptides that match with the genes of interest
 
 Additional files when running fromAssembly2gene_Klebsiella.pl
 
 folder test_output:
 Each assembly has two folders one for the chromosome and one for the plasmid. 
-GenomeName.chromosome_contigslist.txt:list of contigs in the assembly that are chromosomal
-GenomeName.chromosome.fasta: fasta file of chromosomal contigs
-GenomeName.fsa_nt.chromosomesummary.txt: summary results from chromosome prediction from mlplasmid
+*GenomeName.chromosome_contigslist.txt*:list of contigs in the assembly that are chromosomal
+*GenomeName.chromosome.fasta*: fasta file of chromosomal contigs
+*GenomeName.fsa_nt.chromosomesummary.txt*: summary results from chromosome prediction from mlplasmid
 	
