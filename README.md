@@ -73,26 +73,26 @@ NOTE 7: The prediction of Plasmids is done by one species at a time, if you have
 
 ## OUTPUTS
 
-folder *test_output*:
+folder **test_output**:
 	This folder contains all the intermedia files used for the program. These files will help you to check in detail where your alignment come from. In case you are puzzle by your final table. Each folder contains:
 
-  *GenomeName.chr.genes.faa*: all predicted genes in AA
-  *GenomeName.chr.genes.fasta*: all predicted genes in nt
-  *GenomeName.chr.genes.gff*: all predicted genes in gff format with the fasta file at the end
-  *GenomeName.chromosome.GeneName.Blast.txt*: blast results of the gene against the genome
-  *GenomeName.chromosome.GeneName.fasta.plusRef.fasta*: fasta of gene reference and gene in the genome
+  **GenomeName.chr.genes.faa**: all predicted genes in AA
+  **GenomeName.chr.genes.fasta**: all predicted genes in nt
+  **GenomeName.chr.genes.gff**: all predicted genes in gff format with the fasta file at the end
+  **GenomeName.chromosome.GeneName.Blast.txt**: blast results of the gene against the genome
+  **GenomeName.chromosome.GeneName.fasta.plusRef.fasta**: fasta of gene reference and gene in the genome
 
 folder *test_results*
 	This folder contains all final results files and a folder with the predicted peptides that match with the genes of interest
-  *GeneName.fasta.nt_alignment.fasta*: The alignment of each gene of interest for all the genomes analysed
-  *test.alignments.description.txt*: table with the descriptive information of the alignments, stop codons, gaps, insertions, SNPs, N.copies (numbers of copies)
-  *Peptides* (folder): predicted peptides that match with the genes of interest
+  **GeneName.fasta.nt_alignment.fasta**: The alignment of each gene of interest for all the genomes analysed
+  **test.alignments.description.txt**: table with the descriptive information of the alignments, stop codons, gaps, insertions, SNPs, N.copies (numbers of copies)
+  **Peptides** (folder): predicted peptides that match with the genes of interest
 
 Additional files when running fromAssembly2gene_Klebsiella.pl
 
-folder test_output:
-	Each assembly has two folders one for the chromosome and one for the plasmid.  
-   *GenomeName.chromosome_contigslist.txt*:list of contigs in the assembly that are chromosomal
-   *GenomeName.chromosome.fasta*: fasta file of chromosomal contigs
-   *GenomeName.fsa_nt.chromosomesummary.txt*: summary results from chromosome prediction from mlplasmid
+folder **test_output**:
+	Each assembly has two folders one for the chromosome and one for the plasmid. Examples here are about the chromosome, *.plasmid_* are for plasmids  
+   **GenomeName.chromosome_contigslist.txt**:list of contigs in the assembly that are chromosomal
+   **GenomeName.chromosome.fasta**: fasta file of chromosomal contigs
+   **GenomeName.fsa_nt.chromosomesummary.txt**: summary results from chromosome prediction from mlplasmid
 	
