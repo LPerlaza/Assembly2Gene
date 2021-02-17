@@ -79,7 +79,7 @@ if ($help){
  }
 
 if ($version){
-print STDERR "\nProgram Last updated 14th February 2021 \n\n";
+print STDERR "\nVersion 2.21. Program Last updated 14th February 2021 \n\n";
  exit(1); 
  }
 

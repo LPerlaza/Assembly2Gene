@@ -1,7 +1,7 @@
 # From Assemblies to genes
 
 
-Detect genes in an assembly, and get their alignments and description using fromAssembly2gene. fromAssembly2gene is a perl script run in command line that uses several available programs and R packages to identify genes of your interests in an assembled genome and outputs a descriptive table, the alignment of your gene against the gene in the assembly and the predicted peptide.
+Detect coding genes in an assembly, and get their alignments and description using fromAssembly2gene. fromAssembly2gene is a perl script run in command line that uses several available programs and R packages to identify genes of your interests in an assembled genome and outputs a descriptive table, the alignment of your gene against the gene in the assembly and the predicted peptide.
 It runs several steps:
 
 1. Predicts genes using prodigal https://github.com/hyattpd/Prodigal
@@ -14,7 +14,7 @@ The alternative run predicting plasmids:
 --Kleb, --Esch or --Ent options. These setting works similarly with the exception that before the prediction of genes, it uses "mlplasmids" to identify plasmids (https://gitlab.com/sirarredondo/mlplasmids)
 it separates chromosome and plasmids from assembled genomes and find the genes of your interest.	
 
- **Requires**
+## Requires
  
 The required inputs are assemblies and genes in fasta formats.
 The genomes must be located in a folder together with not additional files. 
@@ -27,11 +27,13 @@ Dependencies: Blast, prodigal and samtools. R packages: "mlplasmids", "msa", "re
 
 The program has been parallelised for efficiency.
  
-**Install**
-
+## INSTALL 
+```
 git clone https://github.com/LPerlaza/Assembly2Gene.git
-	 							
-**Run**
+cd Assembly2Gene
+chmod a+x fromAssembly2gene.pl
+```	 							
+## RUN
 																																	
 run like:
 ```
@@ -69,28 +71,28 @@ NOTE 7: The prediction of Plasmids is done by one species at a time, if you have
 
 ```
 
-**OUTPUTS**
+## OUTPUTS
 
 folder *test_output*:
 	This folder contains all the intermedia files used for the program. These files will help you to check in detail where your alignment come from. In case you are puzzle by your final table. Each folder contains:
 
-	*GenomeName.chr.genes.faa*: all predicted genes in AA
-	*GenomeName.chr.genes.fasta*: all predicted genes in nt
-	*GenomeName.chr.genes.gff*: all predicted genes in gff format with the fasta file at the end
-	*GenomeName.chromosome.GeneName.Blast.txt*: blast results of the gene against the genome
-	*GenomeName.chromosome.GeneName.fasta.plusRef.fasta*: fasta of gene reference and gene in the genome
+  *GenomeName.chr.genes.faa*: all predicted genes in AA
+  *GenomeName.chr.genes.fasta*: all predicted genes in nt
+  *GenomeName.chr.genes.gff*: all predicted genes in gff format with the fasta file at the end
+  *GenomeName.chromosome.GeneName.Blast.txt*: blast results of the gene against the genome
+  *GenomeName.chromosome.GeneName.fasta.plusRef.fasta*: fasta of gene reference and gene in the genome
 
 folder *test_results*
 	This folder contains all final results files and a folder with the predicted peptides that match with the genes of interest
-	*GeneName.fasta.nt_alignment.fasta*: The alignment of each gene of interest for all the genomes analysed
-	*test.alignments.description.txt*: table with the descriptive information of the alignments, stop codons, gaps, insertions, SNPs, N.copies (numbers of copies)
-	*Peptides* (folder): predicted peptides that match with the genes of interest
+  *GeneName.fasta.nt_alignment.fasta*: The alignment of each gene of interest for all the genomes analysed
+  *test.alignments.description.txt*: table with the descriptive information of the alignments, stop codons, gaps, insertions, SNPs, N.copies (numbers of copies)
+  *Peptides* (folder): predicted peptides that match with the genes of interest
 
 Additional files when running fromAssembly2gene_Klebsiella.pl
 
 folder test_output:
-	Each assembly has two folders one for the chromosome and one for the plasmid. 
-	*GenomeName.chromosome_contigslist.txt*:list of contigs in the assembly that are chromosomal
-	*GenomeName.chromosome.fasta*: fasta file of chromosomal contigs
-	*GenomeName.fsa_nt.chromosomesummary.txt*: summary results from chromosome prediction from mlplasmid
+	Each assembly has two folders one for the chromosome and one for the plasmid.  
+   *GenomeName.chromosome_contigslist.txt*:list of contigs in the assembly that are chromosomal
+   *GenomeName.chromosome.fasta*: fasta file of chromosomal contigs
+   *GenomeName.fsa_nt.chromosomesummary.txt*: summary results from chromosome prediction from mlplasmid
 	
