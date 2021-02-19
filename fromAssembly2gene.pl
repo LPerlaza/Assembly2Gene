@@ -58,13 +58,14 @@ my $help;
 my $Kleb;
 my $Esch;
 my $Ent;
-
+my $percentage;
 
 GetOptions(
     'assemblies|a=s{,}' => \@seq,
     'genes|g=s{,}' => \@genes,
     'out|o=s' =>\$out,
     'cores|c=s' =>\$cores,
+    'percentage|p=s' =>\$percentage,
      'version|v' =>\$version,
       'help|h' =>\$help,
       'Kleb|k' =>\$Kleb,
@@ -84,13 +85,13 @@ print STDERR "\nVersion 2.21. Program Last updated 14th February 2021 \n\n";
  }
 
 if(!$seq[0]){
-  warn "\nERROR: No assemblies or file empty. Can not continue.\n\n";
+  die "\nERROR: No assemblies or file empty. Can not continue.\n\n";
   &usage();
 exit(1);
 }
 
 if(!$genes[0]){
-  warn "\nERROR: No genes or file empty. Can not continue.\n\n";
+ die "\nERROR: No genes or file empty. Can not continue.\n\n";
   &usage();
 exit(1);
 }
@@ -106,7 +107,9 @@ if (!$out){
 if (!$cores){
 $cores=4;
  }
-
+if (!$percentage){
+$percentage=80;
+ }
 
 
 sub usage{
@@ -122,7 +125,7 @@ The R packages "mlplasmids" is needed if --Kleb, --Esch or --Ent are used.
 																																	
 run like: 
 
-./fromAssembly2gene.pl -g gene/*fasta -a genome/* -o GenesInterest -c 10 -np												
+./fromAssembly2gene.pl -g gene/*fasta -a genome/* -o GenesInterest -c 10 												
 
 
 OPTIONS
@@ -130,6 +133,7 @@ OPTIONS
 	--genes 	  -g Put all your files (genes in nucleotide sequences) in a folder and write here the path with *fasta at the end. extension ".fasta".	
 	--out 		  -o prefix for output folders																						
 	--cores		  -c number of cores to use (4 default).
+	--percentage  -p number that indicates the minimum percentage identity considered. defaults is 80%. if your genes are not not highly conserved consider lowering this value
 	--Kleb        -k When this option is set the program predicts plasmids in Klebsiella pneumonia. 
 	--Esch        -e When this option is set the program predicts plasmids in Escherichia coli.
     --Ent         -n When this option is set the program predicts plasmids in  Enterococcus faecium.
@@ -139,7 +143,7 @@ OPTIONS
 NOTE 1: When you write * at the end of the path the program will take every file in the folder. 
 NOTE 2: The genes must have the extension ".fasta" as it is used as a tag for handling file in the program. 
 NOTE 3: The blast indexes are going to be created inside the genes folder. Have this in mind when runing several times, use *fasta to avoid using the index files as inputs.	
-NOTE 4: Make sure your input genes have a starting and stop codon, and are not in reverse. Unexpected mistakes on the identification of the gene can happen when these are not met. We could account for this but the classification of possibly truncated matches is based on the movement of the stop codon in comparison with the reference.
+NOTE 4: Make sure your input genes have a starting and c codon, and are not in reverse. Unexpected mistakes on the identification of the gene can happen when these are not met. We could account for this but the classification of possibly truncated matches is based on the movement of the stop codon in comparison with the reference.
 NOTE 5: If you failed to note 4, the program will add a ATG at the start of your sequence and a TAG at the end.
 NOTE 6: Note that the prediction of plasmids is only possible for the species that mlplasmids is developed for. If your assemblies are not listed, you don't need to set the option and the program will assumed all your assembly is chromosome. 
 NOTE 7: The prediction of Plasmids is done by one species at a time, if you have different species, run the program separately 																																
@@ -185,6 +189,16 @@ if (-d $results_folder) {
 die "ERROR: $results_folder folder Exists! Please rename or delete folder called: $results_folder";
 }
 
+if (! -d  $dir_genes) {
+die "ERROR: $dir_genes folder Does NOT Exist! Please direct the program to the right folder path";
+}
+
+if (! -d $dir_genomes) {
+die "ERROR: $dir_genomes older Does NOT Exist! Please direct the program to the right folder path";
+}
+
+
+
 system("mkdir $output_folder");
 system("mkdir $results_folder");
 system("mkdir $dirresultspep");
@@ -205,10 +219,7 @@ print "folder for results files: originalGenes\n";
 #delete especial characters from windows
 
 
-my $typefile=`file $genes[0]`;
 
-local $/ = "\r" if $typefile=~m/CR/g;
-local $/ = "\r\n" if $typefile=~m/CRLF/g;
 
 
 
@@ -216,9 +227,9 @@ my $species;
 
 
 if (defined $Kleb or defined $Esch  or defined $Ent){
-	if($Kleb){ $species="'Klebsiella pneumoniae'"};
-	if($Esch){$species="'Escherichia coli'"};
-	if($Ent){$species="'Enterococcus faecium'"};
+	if($Kleb){ $species="Klebsiella pneumoniae"};
+	if($Esch){$species="Escherichia coli"};
+	if($Ent){$species="Enterococcus faecium"};
 }else{ 
 $species="NO";
 }
@@ -233,12 +244,12 @@ print "
 
 foreach my $files(@seq){ copy($files,$diroriginalgenomes)}}
 
-print "\n\nPLEASE NOTE: Some format modification are going to be performed on the input files. Copies of the original files are copied for processing on the original files\n\n";
+print "\n\nPLEASE NOTE: Copies of the original files are stored in *output/Originals folders and some format modification are going to be performed on them.\n\n";
 
 
      my $out_alignment_description=$dirresults."/out.alignments.description.txt";
 	open OUT, ">$out_alignment_description" or die "Cannot open $out_alignment_description for writing\n";
-	print OUT "Gene\tRef\tRef_length_nt\tRef_length_AA\tRef_stopCodon\tQuery\tStart\tEnd\tStrand\tQuery_lenght_nt\tQuery_lenght_AA\tnt_gaps\tstopCodon\tSNPs\tGAPs\tINSERTION\tlocation\tclassification\tPercentageSimilarityAA\tPercentageSimilarityDNA\tN.copies\n";
+	print OUT "Gene\tRef\tRef_length_nt\tRef_length_AA\tRef_stopCodon\tGenomeFile\tQuery\tStart\tEnd\tStrand\tQuery_lenght_nt\tQuery_lenght_AA\tnt_gaps\tstopCodon\tSNPs\tGAPs\tINSERTION\tlocation\tclassification\tPercentageSimilarityAA\tPercentageSimilarityDNA\tN.copies\n";
 	close OUT;
 
 
@@ -247,21 +258,44 @@ my $gene_out_alignment_nt_fasta=();
 sub sub0{
 
 my $genes = shift;
+my $typefile=`file $genes`;
+my $cmd_gene;
+my $linegene=$genes."tmp";
 
-   
-	my $linegene=$genes."tmp";
-	my $cmd_gene="awk '/^>/ {printf(\"\%s\",\$0);next; } { printf(\"\%s\",\$0);}  END {printf(\"\");} ' < $genes >$linegene";
-	#print ">>>$cmd_gene\n\n";
-	system($cmd_gene);
+
+#print "\n\n>>>>>>>> $typefile\n\n";
+
+if ( $typefile=~m/CRLF/g){
+				my $cmd_gene="awk '/^>/{gsub(\"\\r\",\"\\n\");printf(\"\%s\",\$0);next; }{gsub(\"\\r\",\"\");printf(\"\%s\",\$0);}  END {printf(\"\");} ' < $genes >$linegene";
+						system($cmd_gene);
+						#print $cmd_gene;
+					}elsif( $typefile=~m/CR/g){
+					    my $cmd_gene="awk '/^>/{gsub(\"\\r\",\"\\n\");printf(\"\%s\",\$0);next;}{gsub(\"\\\$\",\"\");printf(\"\%s\",\$0);}  END {printf(\"\");} ' < $genes | awk '/^>/{printf(\"\%s\\n\",\$0);next; }{printf(\"\%s\",\$0);}  END {printf(\"\");}'  >$linegene";
+						system($cmd_gene);
+						#print $cmd_gene;
+						}else{ 
+					    my $cmd_gene="awk '/^>/{printf(\"\%s\\n\",\$0);next; }{printf(\"\%s\",\$0);}  END {printf(\"\");} ' < $genes >$linegene";
+						system($cmd_gene);
+						#print $cmd_gene;
+						}
+						
 	
-	my $lastcodon=`grep -o '...[^ ]\$' $linegene|tail -1`;
+	my $lastcodon=`grep -o '..[^ ]\$' $linegene|tail -1`;
 	chomp($lastcodon);
    	$lastcodon =~ s/(.*?)\s?[\n?|\r?]/$1/;
-   	   #	print "\n\n>>$lastcodon<<";
-	if( $lastcodon eq  "TAG" ||  $lastcodon eq  "TAA" || $lastcodon eq  "TGA"){system("echo '\n' >> $linegene");}else{system("echo 'TAG\n' >> $linegene")}
+   #	print "\n\n>>$lastcodon<<";
+   	
+   	my $dec;
+   	my @array=("TAG","TAA","TGA","tag","taa","tga");
+   	
+   	
+   	my %params = map { $_ => 1 } @array;
 
-
-	$gene_out_alignment_nt_fasta=$dirresults."/".basename($genes).".nt_alignment.fasta";
+if(exists($params{$lastcodon})) { system("echo '\n' >> $linegene")}else{system("echo 'TAG\n' >> $linegene")}
+   	my $gene_tag=basename($genes);
+   		$gene_tag=~s/.fasta$//g;
+   		
+	$gene_out_alignment_nt_fasta=$dirresults."/".$gene_tag.".nt_alignment.fasta";
 	open OUT1, ">$gene_out_alignment_nt_fasta" or die "Cannot open $gene_out_alignment_nt_fasta for writing\n";
 	#sed 's/.*\(...\)/\1/'
 
@@ -285,8 +319,8 @@ my $genes = shift;
 
 
 
-sub sub1{
 
+sub sub1{
 my $seq = shift;
 my $genome=basename($seq);
 my $dirproplas=$diroutput."/".$genome.".plasmid";
@@ -296,9 +330,9 @@ my $dirprochr=$diroutput."/".$genome.".chromosome";
 my $cmd_prod_chr="mkdir $dirprochr";
 system("$cmd_prod_chr");
 
-#print "Rscript plasmid_chromosome_Detection.r $seq  $dirprochr $dirproplas $species --slave\n";
+print "Rscript plasmid_chromosome_Detection.r $seq  $dirprochr $dirproplas \"$species\" --slave\n";
 
-      		system("Rscript plasmid_chromosome_Detection.r $seq  $dirprochr $dirproplas $species --slave");
+      		system("Rscript plasmid_chromosome_Detection.r $seq  $dirprochr $dirproplas \"$species\" --slave");
  		#print "done with $seq";
  }
  
@@ -329,7 +363,8 @@ if(-s $input_plasmid){
     my $cmd_cut="cut -d \" \" -f1 $input_plasmid >$temp_plasmid";
     system($cmd_cut);
 	system("xargs samtools faidx $seq< $temp_plasmid > $temp_plasmid_1");
-	my $cmd_awk="awk '/^>/{\$0=\$0\"\\:$genome"."_plasm\"}1' $temp_plasmid_1 >$output_plasmid";
+	my $cmd_awk="awk '/^>/{gsub(\" \",\"_\"); \$0=\$0\"\\:$genome"."_plasmid\"}1' $temp_plasmid_1 >$output_plasmid";
+	#my $cmd_awk="awk '/^>/{\$0=\$0\"\\:$genome"."_plasm\"}1' $temp_plasmid_1 >$output_plasmid";
 	#print ">>>>>>$cmd_awk\n\n";
 	system($cmd_awk);
 	system( "rm $temp_plasmid");
@@ -343,7 +378,8 @@ if( -s $input_chr){
     my $cmd_cut1="cut -d \" \" -f1 $input_chr >$temp_chr";
 	system($cmd_cut1);
 	system("xargs samtools faidx $seq< $temp_chr > $temp_chr_1");
-	my $cmd_awk1="awk '/^>/{\$0=\$0\"\\:$genome"."_chr\"}1' $temp_chr_1 >$output_chr";	
+	my $cmd_awk1="awk '/^>/{gsub(\" \",\"_\"); \$0=\$0\"\\:$genome"."_chr\"}1' $temp_chr_1 >$output_chr";
+	#my $cmd_awk1="awk '/^>/{\$0=\$0\"\\:$genome"."_chr\"}1' $temp_chr_1 >$output_chr";	
 #	print ">>>>>$cmd_awk1\n\n";
 	system($cmd_awk1);
 	system( "rm $temp_chr");
@@ -498,25 +534,18 @@ my $temp1=$genes_fasta1.".tmp";
 	my $gene_tag=basename($gene);
 	$gene_tag=~s/.fasta$//g;
 	
-	my $gene_genome_out_alignment_AA_fasta=$dirresultspep."/".$genename."_".$genome.".AAsequence.fasta";
-	open OUT2, ">$gene_genome_out_alignment_AA_fasta" or die "Cannot open $gene_genome_out_alignment_AA_fasta for writing\n";
-	close OUT2;
-	
-	my $gene_genome_out_alignment_nt_fasta=$dirresults."/".$genename."_".$genome.".nt_alignment.fasta.tmp";
-	open OUT3, ">$gene_genome_out_alignment_nt_fasta" or die "Cannot open $gene_genome_out_alignment_nt_fasta for writing\n";
-	close OUT3;
 	
 	my $outputblast= $name_output_plasmid.".".$gene_tag.".Blast.txt";
 	my $outputblast1= $name_output_chr.".".$gene_tag.".Blast.txt";
 	
 	
 	if(-s $genes_fasta){
-	my $cmd_blast="blastn -query $genes_fasta -db $gene_id -dust no -outfmt \"6 qseqid sseqid pident qlen slen length qstart qend sstart send mismatch gapope evalue bitscore\" -perc_identity 80 -out $outputblast";
+	my $cmd_blast="blastn -query $genes_fasta -db $gene_id -dust no -outfmt \"6 qseqid sseqid pident qlen slen length qstart qend sstart send mismatch gapope evalue bitscore\" -perc_identity $percentage -out $outputblast";
 	#print "$cmd_blast\n";
 	  system ($cmd_blast);}
 	  
 	if(-s $genes_fasta1){
-	my $cmd_blast1="blastn -query $genes_fasta1 -db $gene_id -dust no -outfmt \"6 qseqid sseqid pident qlen slen length qstart qend sstart send mismatch gapope evalue bitscore\" -perc_identity 80 -out $outputblast1";
+	my $cmd_blast1="blastn -query $genes_fasta1 -db $gene_id -dust no -outfmt \"6 qseqid sseqid pident qlen slen length qstart qend sstart send mismatch gapope evalue bitscore\" -perc_identity $percentage -out $outputblast1";
 	#print "$cmd_blast1\n";
 	system ($cmd_blast1);}
 
@@ -569,16 +598,11 @@ my $temp1=$genes_fasta1.".tmp";
 	my $gene_tag=basename($gene);
 	$gene_tag=~s/.fasta$//g;
 	
-	my $gene_genome_chr_out_alignment_AA_fasta=$dirresultspep."/".$genename."_".$genome.".Chr.AAsequence.fasta";
-	my $gene_genome_chr_out_alignment_nt_fasta=$dirresults."/".$genename."_".$genome.".Chr.nt_alignment.fasta.tmp";
-
-	my $gene_genome_plas_out_alignment_AA_fasta=$dirresultspep."/".$genename."_".$genome.".Plasm.AAsequence.fasta";
-	my $gene_genome_plas_out_alignment_nt_fasta=$dirresults."/".$genename."_".$genome.".Plasm.nt_alignment.fasta.tmp";
 
 	my $outputblast= $name_output_plasmid.".".$gene_tag.".Blast.txt";
 	my $outputblast1= $name_output_chr.".".$gene_tag.".Blast.txt";
 	
-	my $gene_ref=$gene;
+	my $gene_ref=$gene_id.".fasta";
 
 if(-s $outputblast){
  my $temp_plasmid=$name_output_plasmid.".".$gene_tag.".tmp";
@@ -591,8 +615,15 @@ if(-s $outputblast){
 
 my $out_alignment_description=$dirresults."/".$genome.".".$gene_tag.".plasmid.out.alignments.description";
 	open OUT, ">$out_alignment_description" or die "Cannot open $out_alignment_description for writing\n";
+
+my $gene_genome_plas_out_alignment_AA_fasta=$dirresultspep."/".$gene_tag."_".$genome.".plasm.AAsequence.fasta";
+		open OUT1, ">$gene_genome_plas_out_alignment_AA_fasta" or die "Cannot open $gene_genome_plas_out_alignment_AA_fasta for writing\n";
+
+my $gene_genome_plas_out_alignment_nt_fasta=$dirresults."/".$gene_tag."_".$genome.".plasm.nt_alignment.fasta.tmp";
+		open OUT2, ">$gene_genome_plas_out_alignment_nt_fasta" or die "Cannot open  $gene_genome_plas_out_alignment_nt_fasta for writing\n";
+
 	
-		#print " Rscript curatingAlignments.r $output_ref_plasmid $gene_tag $gene_genome_plas_out_alignment_nt_fasta $gene_genome_plas_out_alignment_AA_fasta $out_alignment_description --slave\n\n";
+		#print "Rscript curatingAlignments.r $output_ref_plasmid $gene_tag $gene_genome_plas_out_alignment_nt_fasta $gene_genome_plas_out_alignment_AA_fasta $out_alignment_description --slave\n\n";
 
   		system(" Rscript curatingAlignments.r $output_ref_plasmid $gene_tag $gene_genome_plas_out_alignment_nt_fasta $gene_genome_plas_out_alignment_AA_fasta $out_alignment_description --slave");
 
@@ -604,7 +635,7 @@ my $out_alignment_description=$dirresults."/".$genome.".".$gene_tag.".plasmid.ou
 	chomp($firstline_Ref);
 	$firstline_Ref=~s/[\n\r]//g;
 	$firstline_Ref=~s/>//g;
-	print OUT "$genename\t\"$firstline_Ref\"\tNA\tNA\tNA\t\"$genome\"\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tplasmid\tabsent\t0\t0\t0\n";
+	print OUT "$genename\t\"$firstline_Ref\"\tNA\tNA\tNA\t\"$genome\"\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tplasmid\tabsent\t0\t0\t0\n";
 	close OUT;
  }
 
@@ -619,6 +650,12 @@ my $temp_chr=$name_output_chr.".".$gene_tag.".tmp";
 
 my $out_alignment_description=$dirresults."/".$genome.".".$gene_tag.".chr.out.alignments.description";
 	open OUT, ">$out_alignment_description" or die "Cannot open $out_alignment_description for writing\n";
+
+my $gene_genome_chr_out_alignment_AA_fasta=$dirresultspep."/".$gene_tag."_".$genome.".chr.AAsequence.fasta";
+		open OUT1, ">$gene_genome_chr_out_alignment_AA_fasta" or die "Cannot open $gene_genome_chr_out_alignment_AA_fasta for writing\n";
+
+my $gene_genome_chr_out_alignment_nt_fasta=$dirresults."/".$gene_tag."_".$genome.".chr.nt_alignment.fasta.tmp";
+		open OUT2, ">$gene_genome_chr_out_alignment_nt_fasta" or die "Cannot open  $gene_genome_chr_out_alignment_nt_fasta for writing\n";
 	  	
 	  	#print " Rscript curatingAlignments.r  $output_ref_chr $gene_tag $gene_genome_chr_out_alignment_nt_fasta $gene_genome_chr_out_alignment_AA_fasta $out_alignment_description --slave\n\n";
 
@@ -633,7 +670,7 @@ my $out_alignment_description=$dirresults."/".$genome.".".$gene_tag.".chr.out.al
 	chomp($firstline_Ref);
 		$firstline_Ref=~s/[\n\r]//g;
 		$firstline_Ref=~s/>//g;
-	print OUT "$genename\t\"$firstline_Ref\"\tNA\tNA\tNA\t\"$genome\"\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tchromosome\tabsent\t0\t0\t0\n";
+	print OUT "$genename\t\"$firstline_Ref\"\tNA\tNA\tNA\t\"$genome\"\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tchromosome\tabsent\t0\t0\t0\n";
 	close OUT;
 	 }
 	}
@@ -657,29 +694,7 @@ system("$cmd_prod_chr");
 
  }
  
-
- sub sub2_chr{
-my $seq = shift;
-my $genome=basename($seq);
-
-my $dirprochr=$diroutput."/".$genome.".chromosome";
-
-
-	my $temp_chr=$seq.".tmp";
-	my $cmd_awk1="awk '/^>/{\$0=\$0\"\\:$genome"."_chr\"}1' $seq >$temp_chr";	
-	
-	#print ">>>>>$cmd_awk1\n\n";
-	system($cmd_awk1);
-	system("mv $temp_chr $diroriginalgenomes/$genome");
-	
-	
-}
-
-
-
-
-
-sub sub3_chr{
+sub sub2_chr{
 my $seq = shift;
 $seq=$diroriginalgenomes."/".$seq;
 my $genome=basename($seq);
@@ -698,6 +713,38 @@ system("\(cat $gene_gff1tmp; echo '##FASTA'; cat  $seq\) >$gene_gff1");
 system("rm $gene_gff1tmp");    
 
 }
+
+
+sub sub3_chr{
+my $seq = shift;
+my $genome=basename($seq);
+$seq=$diroriginalgenomes."/".$genome;
+my $dirprochr=$diroutput."/".$genome.".chromosome";
+
+my $gene_gff1=$dirprochr."/".$genome.".chr.genes.gff";
+my $gene_gff1tmp=$dirprochr."/".$genome.".chr.genes.gfftmp";
+my $gene_faa1=$dirprochr."/".$genome.".chr.genes.faa";
+my $gene_faa1tmp=$dirprochr."/".$genome.".chr.genes.faatmp";
+my $genes_fasta1=$dirprochr."/".$genome.".chr.genes.fasta";
+my $genes_fasta1tmp=$dirprochr."/".$genome.".chr.genes.fastatmp";
+
+	my $cmd_awk1="awk '/^>/{\$0=\$0\"\\:$genome\"}1'  $gene_gff1 > $gene_gff1tmp";
+	my $cmd_awk2="awk '/^>/{\$0=\$0\"\\:$genome\"}1'  $gene_faa1 > $gene_faa1tmp";
+	my $cmd_awk3="awk '/^>/{\$0=\$0\"\\:$genome\"}1'  $genes_fasta1 > $genes_fasta1tmp";
+	
+	#print ">>>>> 1 $cmd_awk\n\n";
+	system($cmd_awk1);
+	system($cmd_awk2);
+	system($cmd_awk3);
+	
+	system("mv $gene_gff1tmp $gene_gff1");
+	system("mv $gene_faa1tmp $gene_faa1");
+	system("mv $genes_fasta1tmp $genes_fasta1");
+	
+}
+
+
+
 
 
 sub sub4_chr{
@@ -743,20 +790,13 @@ my $temp1=$genes_fasta1.".tmp";
 	my $gene_tag=basename($gene);
 	$gene_tag=~s/.fasta$//g;
 	
-	my $gene_genome_out_alignment_AA_fasta=$dirresultspep."/".$genename."_".$genome.".AAsequence.fasta";
-	open OUT2, ">$gene_genome_out_alignment_AA_fasta" or die "Cannot open $gene_genome_out_alignment_AA_fasta for writing\n";
-	close OUT2;
 	
-	my $gene_genome_out_alignment_nt_fasta=$dirresults."/".$genename."_".$genome.".nt_alignment.fasta.tmp";
-	open OUT3, ">$gene_genome_out_alignment_nt_fasta" or die "Cannot open $gene_genome_out_alignment_nt_fasta for writing\n";
-	close OUT3;
-	
-	my $outputblast1= $dirprochr.".".$gene_tag.".Blast.txt";
+	my $outputblast1= $dirprochr."/".$genome.".chromosome.".$gene_tag.".Blast.txt";
 	
  
 		if(-s $genes_fasta1){
-		my $cmd_blast1="blastn -query $genes_fasta1 -db $gene_id -dust no -outfmt \"6 qseqid sseqid pident qlen slen length qstart qend sstart send mismatch gapope evalue bitscore\" -perc_identity 80 -out $outputblast1";
-		#print "$cmd_blast1\n";
+		my $cmd_blast1="blastn -query $genes_fasta1 -db $gene_id -dust no -outfmt \"6 qseqid sseqid pident qlen slen length qstart qend sstart send mismatch gapope evalue bitscore\" -perc_identity $percentage -out $outputblast1";
+		print "$cmd_blast1\n";
 		system ($cmd_blast1);}
 		#print "\n\n\n\n find $diroutput/*/ -size 0 |  xargs rm \n\n\n\n ";
 		#system("find $diroutput/*/ -size 0 |  xargs rm");
@@ -771,15 +811,6 @@ my $seq = shift;
 $seq=$diroriginalgenomes."/".$seq;
 my $genome=basename($seq);
 my $dirprochr=$diroutput."/".$genome.".chromosome";
-my $input_chr=$dirprochr."/".$genome.".chromosome_contigslist.txt";
-my $output_chr=$input_chr;
-$output_chr=~s/_contigslist.txt/.fasta/g;
-	 
-
-my $name_output_chr=$output_chr;
- $name_output_chr=~s/.fasta$//;
-
-
 my $gene_gff1=$dirprochr."/".$genome.".chr.genes.gff";
 my $gene_faa1=$dirprochr."/".$genome.".chr.genes.faa";
 my $genes_fasta1=$dirprochr."/".$genome.".chr.genes.fasta";
@@ -794,18 +825,20 @@ my $temp1=$genes_fasta1.".tmp";
 	my $gene_tag=basename($gene);
 	$gene_tag=~s/.fasta$//g;
 	
-	my $gene_genome_chr_out_alignment_AA_fasta=$dirresultspep."/".$genename."_".$genome.".Chr.AAsequence.fasta";
-	my $gene_genome_chr_out_alignment_nt_fasta=$dirresults."/".$genename."_".$genome.".Chr.nt_alignment.fasta.tmp";
-
-	my $outputblast1= $name_output_chr.".".$gene_tag.".Blast.txt";
 	
-	my $gene_ref=$gene;
+
+	my $outputblast1= $dirprochr."/".$genome.".chromosome.".$gene_tag.".Blast.txt";
+	
+	my $gene_ref=$gene_id.".fasta";
 
 
 if(-s $outputblast1){
-my $temp_chr=$name_output_chr.".".$gene_tag.".tmp";
+my $temp_chr=$dirprochr.".".$gene_tag.".tmp";
 	system("cut -f 1 $outputblast1 >$temp_chr");
-	my $output_gene1= $name_output_chr.".".$gene_tag.".fasta";
+	
+	
+
+	my $output_gene1= $dirprochr.".".$gene_tag.".fasta";
 	system("xargs samtools faidx $genes_fasta1< $temp_chr >$output_gene1");
 	system("rm $temp_chr");
 	my $output_ref_chr=$output_gene1.".plusRef.fasta";
@@ -813,8 +846,15 @@ my $temp_chr=$name_output_chr.".".$gene_tag.".tmp";
 
 my $out_alignment_description=$dirresults."/".$genome.".".$gene_tag.".chr.out.alignments.description";
 	open OUT, ">$out_alignment_description" or die "Cannot open $out_alignment_description for writing\n";
+
+my $gene_genome_chr_out_alignment_AA_fasta=$dirresultspep."/".$gene_tag."_".$genome.".AAsequence.fasta";
+		open OUT1, ">$gene_genome_chr_out_alignment_AA_fasta" or die "Cannot open $gene_genome_chr_out_alignment_AA_fasta for writing\n";
+
+my $gene_genome_chr_out_alignment_nt_fasta=$dirresults."/".$gene_tag."_".$genome.".nt_alignment.fasta.tmp";
+		open OUT2, ">$gene_genome_chr_out_alignment_nt_fasta" or die "Cannot open  $gene_genome_chr_out_alignment_nt_fasta for writing\n";
+
 	  	
-	  	#print " Rscript curatingAlignments.r  $output_ref_chr $gene_tag $gene_genome_chr_out_alignment_nt_fasta $gene_genome_chr_out_alignment_AA_fasta $out_alignment_description --slave\n\n";
+	  	print " Rscript curatingAlignments.r  $output_ref_chr $gene_tag $gene_genome_chr_out_alignment_nt_fasta $gene_genome_chr_out_alignment_AA_fasta $out_alignment_description --slave\n\n";
 
   		system(" Rscript curatingAlignments.r  $output_ref_chr $gene_tag $gene_genome_chr_out_alignment_nt_fasta $gene_genome_chr_out_alignment_AA_fasta $out_alignment_description --slave");
 
@@ -827,7 +867,7 @@ my $out_alignment_description=$dirresults."/".$genome.".".$gene_tag.".chr.out.al
 	chomp($firstline_Ref);
 		$firstline_Ref=~s/[\n\r]//g;
 		$firstline_Ref=~s/>//g;
-	print OUT "$genename\t\"$firstline_Ref\"\tNA\tNA\tNA\t\"$genome\"\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tchromosome\tabsent\t0\t0\t0\n";
+	print OUT "$genename\t\"$firstline_Ref\"\tNA\tNA\tNA\t\"$genome\"\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tchromosome\tabsent\t0\t0\t0\n";
 	close OUT;
 
 
@@ -1119,7 +1159,9 @@ findPotentialStartsAndStops <- function(DNA_string)
 
 
 		mySequences <- readDNAStringSet(file)
-
+		namesunique=unique(mySequences\@ranges\@NAMES)
+		mySequences <- mySequences[namesunique]
+		
 		myFirstAlignment=Alignment(mySequences)
 
 		myFirstAlignment_reverse=Alignment(c(reverseComplement(mySequences[1]),mySequences[2]))
@@ -1200,10 +1242,6 @@ query=rownames(X_Alignment)[2]
 			GAPs=paste(changesGAPs\$mutation,collapse=',')
 			INSERTION=paste(changesINSERTION\$mutation,collapse=',')
 			
-
-
-			if (stopsref != stops[1]){classification='possibly_truncated'}else{classification='present'}
-			
 			myAlignment=myFirstAlignment
 			Ncopies=1
     }
@@ -1233,8 +1271,10 @@ query=rownames(X_Alignment)[2]
 						if(length(y)>1){y='N'}
 						return(y)})
 
-
-  		consensusSeq=DNAStringSet(paste(xx\$consensus,collapse=''))
+		conSeq=paste(xx\$consensus,collapse='')
+		conSeq=gsub('-','',conSeq)
+  		consensusSeq=DNAStringSet(conSeq)
+  		
   		consensusSeq\@ranges\@NAMES=mySequences\@ranges\@NAMES[2]
   		ref=DNAStringSet(mySequences[[1]])
   		ref\@ranges\@NAMES=mySequences\@ranges\@NAMES[1]
@@ -1250,10 +1290,7 @@ query=rownames(X_Alignment)[2]
  		Consensus_reverse=str_count(FAR, pattern ='\\\\?')
 	
 		if(Consensus<Consensus_reverse){Alignment=myAlignment}else{myAlignment=myAlignment_reverse}
-  
-  
-     
-         		
+	
      X_Alignment=myAlignment
 
 query=rownames(X_Alignment)[2]
@@ -1311,15 +1348,7 @@ query=rownames(X_Alignment)[2]
 			SNPs=paste(changesSNPs\$mutation,collapse=',')
 			GAPs=paste(changesGAPs\$mutation,collapse=',')
 			INSERTION=paste(changesINSERTION\$mutation,collapse=',')
-			
 
-     
-     
-     
-     
-	if (stopsref != stops[1]){classification='possibly_truncated'}else{classification='present'}
-			
-		
 			if(any(xx[,2]=='-') && any(xx[,3]=='-')){Ncopies=1}else{Ncopies=2}		
    
 }
@@ -1354,7 +1383,9 @@ k=0
 						return(y)})
 
   		
-  		consensusSeq=DNAStringSet(paste(xx\$consensus,collapse=''))
+  		conSeq=paste(xx\$consensus,collapse='')
+		conSeq=gsub('-','',conSeq)
+  		consensusSeq=DNAStringSet(conSeq)
   		consensusSeq\@ranges\@NAMES=mySequences\@ranges\@NAMES[2]
   		ref=DNAStringSet(mySequences[[1]])
   		ref\@ranges\@NAMES=mySequences\@ranges\@NAMES[1]
@@ -1428,10 +1459,6 @@ query=rownames(X_Alignment)[2]
 			SNPs=paste(changesSNPs\$mutation,collapse=',')
 			GAPs=paste(changesGAPs\$mutation,collapse=',')
 			INSERTION=paste(changesINSERTION\$mutation,collapse=',')
-			
-
-
-	if (stopsref != stops[1]){classification='possibly_truncated'}else{classification='present'}
 
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') && any(xx[,4]=='-')){Ncopies=1}else{Ncopies=3}		
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') ){Ncopies=1}else{Ncopies=2}		
@@ -1466,8 +1493,11 @@ k=0
 						return(y)})
 
   		
-  		consensusSeq=DNAStringSet(paste(xx\$consensus,collapse=''))
+  		conSeq=paste(xx\$consensus,collapse='')
+		conSeq=gsub('-','',conSeq)
+  		consensusSeq=DNAStringSet(conSeq)
   		consensusSeq\@ranges\@NAMES=mySequences\@ranges\@NAMES[2]
+  		
   		ref=DNAStringSet(mySequences[[1]])
   		ref\@ranges\@NAMES=mySequences\@ranges\@NAMES[1]
   		
@@ -1484,7 +1514,7 @@ k=0
        
        X_Alignment=myAlignment
 
-query=rownames(X_Alignment)[2]
+			query=rownames(X_Alignment)[2]
       		Seq=toString(unmasked(X_Alignment)[[query]] )
       		Seq_string=strsplit(toString(Seq),'')
   			x=table(strsplit(Seq,''))
@@ -1540,11 +1570,6 @@ query=rownames(X_Alignment)[2]
 			GAPs=paste(changesGAPs\$mutation,collapse=',')
 			INSERTION=paste(changesINSERTION\$mutation,collapse=',')
 			
-
-  
-	if (stopsref != stops[1]){classification='possibly_truncated'}else{classification='present'}
-
-	
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') && any(xx[,4]=='-') && any(xx[,5]=='-')){Ncopies=1}else{Ncopies=4}	
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') && any(xx[,4]=='-' )){Ncopies=1}else{Ncopies=3}		
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') ){Ncopies=1}else{Ncopies=2}		
@@ -1579,7 +1604,9 @@ k=0
 						return(y)})
 
   		
-  		consensusSeq=DNAStringSet(paste(xx\$consensus,collapse=''))
+  		conSeq=paste(xx\$consensus,collapse='')
+		conSeq=gsub('-','',conSeq)
+  		consensusSeq=DNAStringSet(conSeq)
   		consensusSeq\@ranges\@NAMES=mySequences\@ranges\@NAMES[2]
   		ref=DNAStringSet(mySequences[[1]])
   		ref\@ranges\@NAMES=mySequences\@ranges\@NAMES[1]
@@ -1597,7 +1624,7 @@ k=0
        
        X_Alignment=myAlignment
 
-query=rownames(X_Alignment)[2]
+			query=rownames(X_Alignment)[2]
       		Seq=toString(unmasked(X_Alignment)[[query]] )
       		Seq_string=strsplit(toString(Seq),'')
   			x=table(strsplit(Seq,''))
@@ -1653,10 +1680,6 @@ query=rownames(X_Alignment)[2]
 			GAPs=paste(changesGAPs\$mutation,collapse=',')
 			INSERTION=paste(changesINSERTION\$mutation,collapse=',')
 			
-
-  
-	if (stopsref != stops[1]){classification='possibly_truncated'}else{classification='present'}
-
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') && any(xx[,4]=='-') && any(xx[,5]=='-') && any(xx[,6]=='-')){Ncopies=1}else{Ncopies=5}
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') && any(xx[,4]=='-') && any(xx[,5]=='-')){Ncopies=1}else{Ncopies=4}	
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') && any(xx[,4]=='-' )){Ncopies=1}else{Ncopies=3}		
@@ -1693,7 +1716,9 @@ k=0
 						return(y)})
 
   		
-  		consensusSeq=DNAStringSet(paste(xx\$consensus,collapse=''))
+  		conSeq=paste(xx\$consensus,collapse='')
+		conSeq=gsub('-','',conSeq)
+  		consensusSeq=DNAStringSet(conSeq)
   		consensusSeq\@ranges\@NAMES=mySequences\@ranges\@NAMES[2]
   		ref=DNAStringSet(mySequences[[1]])
   		ref\@ranges\@NAMES=mySequences\@ranges\@NAMES[1]
@@ -1709,9 +1734,9 @@ k=0
 	
 		if(Consensus<Consensus_reverse){Alignment=myAlignment}else{myAlignment=myAlignment_reverse}
        
-       X_Alignment=myAlignment
+      	 X_Alignment=myAlignment
 
-query=rownames(X_Alignment)[2]
+			query=rownames(X_Alignment)[2]
       		Seq=toString(unmasked(X_Alignment)[[query]] )
       		Seq_string=strsplit(toString(Seq),'')
   			x=table(strsplit(Seq,''))
@@ -1766,11 +1791,7 @@ query=rownames(X_Alignment)[2]
 			SNPs=paste(changesSNPs\$mutation,collapse=',')
 			GAPs=paste(changesGAPs\$mutation,collapse=',')
 			INSERTION=paste(changesINSERTION\$mutation,collapse=',')
-			
-
-  
-	if (stopsref != stops[1]){classification='possibly_truncated'}else{classification='present'}
-
+		
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') && any(xx[,4]=='-') && any(xx[,5]=='-') && any(xx[,6]=='-') && any(xx[,6]=='-')){Ncopies=1}else{Ncopies=6}
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') && any(xx[,4]=='-') && any(xx[,5]=='-') && any(xx[,6]=='-')){Ncopies=1}else{Ncopies=5}
 			if(any(xx[,2]=='-') && any(xx[,3]=='-') && any(xx[,4]=='-') && any(xx[,5]=='-')){Ncopies=1}else{Ncopies=4}	
@@ -1814,6 +1835,14 @@ query=strsplit(names[2],'###')[[1]][1]
 start=strsplit(names[2],'###')[[1]][2]
 end=strsplit(names[2],'###')[[1]][3]
 strand=strsplit(names[2],'###')[[1]][4]
+GenomeFile=strsplit(names[2],':')[[1]][2]
+
+
+startingcodon= min(which(PepAlign\$match==1))
+
+if (stopsref != stops[1]){classification='possibly_truncated'}else{classification='present'}
+if (startingcodon != 1){classification='late_startcodon'}else{classification='possibly_truncated'}
+
 
    		metadatasummary=data.frame(
       		gene=genename,
@@ -1821,6 +1850,7 @@ strand=strsplit(names[2],'###')[[1]][4]
  					Ref_length_nt=sum(xref),
  					Ref_length_AA=length_Seqtrlref,
  					Ref_stopCodon=stopsref,
+ 					GenomeFile=GenomeFile,
  					Query=paste('\"',query,'\"',sep=''),
  					Start=start,
  					End=end,
@@ -1844,15 +1874,39 @@ strand=strsplit(names[2],'###')[[1]][4]
   write.table(metadatasummary,file=out3,append=TRUE,quote=FALSE,row.names=FALSE,col.names=FALSE,sep='\t')
 }
 
+count=1
+
 if(Ncopies>1){
 
 names=names[-1]
+
 for (i in names){
+
+count=count+1
 
 query=strsplit(i,'###')[[1]][1]
 start=strsplit(i,'###')[[1]][2]
 end=strsplit(i,'###')[[1]][3]
 strand=strsplit(i,'###')[[1]][4]
+GenomeFile=strsplit(names[1],':')[[1]][2]
+
+SeqName=xx[count]
+ff=gsub('\"','',SeqName)
+ff=gsub('\\n','',ff)
+ff=gsub(', ','',ff)
+ff=gsub('c\\\\(','',ff)
+ff=gsub('\\\\)','',ff)
+
+SeqName=ff
+x=table(strsplit(SeqName,''))
+xORF=findORFsinSeq(SeqName)
+bestORF=xORF[ xORF\$orflengths==max(xORF\$orflengths),]
+query_trans=Biostrings::translate(DNAString(substring(SeqName, bestORF\$orfstart,bestORF\$orfstops)),if.fuzzy.codon='solve')
+Seq_trl=query_trans
+length_Seqtrl=length(Seq_trl)
+Seq_trl_string=strsplit(toString(Seq_trl),'')	
+stops=which( Seq_trl_string[[1]]=='*')
+
 
 myAlignmentAA=invisible(msa(c(AAStringSet(Seq_trlref),AAStringSet(Seq_trl))))
 RefAA=strsplit(toString(  toString(unmasked(myAlignmentAA)[[1]] ) ),'')
@@ -1863,7 +1917,7 @@ PepAlign=data.frame(Ref=unlist(RefAA),Query=unlist(SeqAA))
 PepAlign\$match[PepAlign\$Ref== PepAlign\$Query]=1
 PepAlign\$match[PepAlign\$Ref!= PepAlign\$Query]=0
 
-myAlignmentDNA=invisible(msa(c(DNAStringSet(Seqref),DNAStringSet(Seq))))
+myAlignmentDNA=invisible(msa(c(DNAStringSet(Seqref),DNAStringSet(SeqName))))
 RefDNA=strsplit(toString(  toString(unmasked(myAlignmentDNA)[[1]] ) ),'')
 SeqDNA=strsplit(toString(  toString(unmasked(myAlignmentDNA)[[2]] ) ),'')
 DNAAlign=data.frame(Ref=unlist(RefDNA),Query=unlist(SeqDNA))
@@ -1878,6 +1932,10 @@ DNAAlign\$match[DNAAlign\$Ref!= DNAAlign\$Query]=0
 PepAlignSimilarity=sum(PepAlign\$match/length(PepAlign\$match))*100	
 DNAAlignSimilarity=sum(DNAAlign\$match/length(DNAAlign\$match))*100
 
+startingcodon= min(which(PepAlign\$match==1))
+
+if (stopsref != stops[1]){classification='possibly_truncated'}else{classification='present'}
+if (startingcodon != 1){classification='late_startcodon'}else{classification='present'}
 
   		metadatasummary=data.frame(
       		gene=genename,
@@ -1885,6 +1943,7 @@ DNAAlignSimilarity=sum(DNAAlign\$match/length(DNAAlign\$match))*100
  					Ref_length_nt=sum(xref),
  					Ref_length_AA=length_Seqtrlref,
  					Ref_stopCodon=stopsref,
+ 					GenomeFile=GenomeFile,
  					Query=paste('\"',query,'\"',sep=''),
  					Start=start,
  					End=end,
@@ -1903,7 +1962,7 @@ DNAAlignSimilarity=sum(DNAAlign\$match/length(DNAAlign\$match))*100
  						Ncopies=Ncopies)
 
 
-      		seq2Fasta(Seq,query,out1)
+      		seq2Fasta(SeqName,query,out1)
        		seqAA2Fasta(Seq_trl,query, out2)
   write.table(metadatasummary,file=out3,append=TRUE,quote=FALSE,row.names=FALSE,col.names=FALSE,sep='\t')
 }
@@ -1922,7 +1981,7 @@ DNAAlignSimilarity=sum(DNAAlign\$match/length(DNAAlign\$match))*100
 sub sub7{
 my $gene= shift;
 	my $genename=basename($gene);
-	
+	$genename=~s/.fasta$//g;
 	my $outAlign=$dirresults."/".$genename.".nt_alignment.fasta";
 	my $outAlign_forR=$dirresults."/".$genename.".nt_alignment.fasta_forR";
 	my $outAlign_forRR=$dirresults."/".$genename.".nt_alignment.fasta_forR_forR";
@@ -1931,9 +1990,8 @@ my $gene= shift;
 	my $cmd_align="cat ".$dirresults."/".$genename."*nt_alignment.fasta.tmp >$outAlign";
 	#print ">>>>>>>>>>>>>$cmd_align\n";
 	system($cmd_align);
+
 	
-	my $cmd_rm="rm ".$dirresults."/".$genename."*tmp";
-	system($cmd_rm); 
 	
 	
 	my $cmd_sed="sed 's/-//g' $outAlign >$outAlign_forRR";
@@ -2044,6 +2102,7 @@ if(nSeq>1){
  		system("rm $R_file");
  		system("rm $outAlign_forR");
  		system("rm $outAlign_forRR");
+ 			
 	
 	}
 	
@@ -2091,31 +2150,6 @@ print "
 
 
 
-  print "
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-\t\t EXTRACTING GENES FROM GENOMES 
-
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
-
- if ($species eq "NO"){ 
- afork(@seq,$cores,\&sub2_chr);
- opendir(BIN, $diroriginalgenomes) or die "Can't open $diroriginalgenomes: $!";
- @seq = grep { -T "$diroriginalgenomes/$_" } readdir BIN;
- 
- }else{afork(@seq,$cores,\&sub2);}
-#normal(@seq,\&sub2);
-print "
--.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-
-
-\t\t DONE EXTRACTING GENES FROM GENOMES 
-  
--.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-\n\n";
-
-
-
-
-
 
  if ($species eq "NO"){ 
    print "
@@ -2124,17 +2158,50 @@ print "
 \t\t GENES PREDICTION FOR CHROMOSOME 
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
-  opendir(BIN, $diroriginalgenomes) or die "Can't open $diroriginalgenomes: $!";
+ opendir(BIN, $diroriginalgenomes) or die "Can't open $diroriginalgenomes: $!";
  @seq = grep { -T "$diroriginalgenomes/$_" } readdir BIN;
- 
- afork(@seq,$cores,\&sub3_chr);
- 
-  print "
+  afork(@seq,$cores,\&sub2_chr);
+    print "
 -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-
 
 \t\t DONE GENES PREDICTION FOR CHROMOSOME 
   
 -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-\n\n";
+  
+  
+ }else{
+   print "
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+\t\t EXTRACTING GENES FROM GENOMES 
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
+ 
+ 
+ afork(@seq,$cores,\&sub2);
+ 
+ 
+ print "
+-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-
+
+\t\t DONE EXTRACTING GENES FROM GENOMES 
+  
+-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-\n\n";
+ 
+ }
+#normal(@seq,\&sub2);
+
+
+
+
+ if ($species eq "NO"){ 
+
+  opendir(BIN, $diroriginalgenomes) or die "Can't open $diroriginalgenomes: $!";
+ @seq = grep { -T "$diroriginalgenomes/$_" } readdir BIN;
+ 
+ afork(@seq,$cores,\&sub3_chr);
+ 
+
  
  }else{
  
@@ -2251,6 +2318,8 @@ system($cmd_cat);
 system("cat $dirresults/out.alignments.description.txt $dirresults/$prefix.Allgenes_descriptive_table.temp >$dirresults/$prefix.Allgenes_descriptive_table.txt"); 
 system("rm $dirresults/$prefix.Allgenes_descriptive_table.temp");
 system("rm $dirresults/*description*");
+system("rm $dirresults/*tmp");
+	
 
 #system("cat $dirresults/out.alignments.description.txt $dirresults/*description > $dirresults/$prefix.Allgenes_descriptive_table.txt");
 #system("rm $dirresults/out.alignments.description.txt");
