@@ -55,7 +55,6 @@ OPTIONS
 	--genes 	  -g Put all your files (genes in nucleotide sequences) in a folder and write here the path with *fasta at the end. extension ".fasta".	
 	--out 		  -o prefix for output folders																						
 	--cores		  -c number of cores to use (4 default).
-	--percentage  -p number that indicates the minimum percentage identity considered. defaults is 80%. if your genes are not not highly conserved consider lowering this value
 	--Kleb        -k When this option is set the program predicts plasmids in Klebsiella pneumonia. 
 	--Esch        -e When this option is set the program predicts plasmids in Escherichia coli.
     --Ent         -n When this option is set the program predicts plasmids in  Enterococcus faecium.
