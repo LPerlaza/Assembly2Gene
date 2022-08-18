@@ -1,4 +1,4 @@
-# this version is not longer mantained. go to :https://github.com/LPerlaza/fromAssembly2Feature
+# this version is NOT longer mantained. go to : https://github.com/LPerlaza/fromAssembly2Feature
 
 
 
